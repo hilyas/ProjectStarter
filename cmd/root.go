@@ -7,6 +7,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -71,4 +72,55 @@ func initConfig() {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
 	}
 }
+
+func readConfig(projectType string, pattern string) (map[string]interface{}, error) {
+	configPath := fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
+
+	viper.SetConfigFile(configPath)
+	err := viper.ReadInConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	config := viper.AllSettings()
+
+	return config, nil
+}
+
+func createDirectoryStructure(projectName string, config map[string]interface{}) error {
+	directories := config["directories"].([]interface{})
+	for _, dir := range directories {
+		dirConfig := dir.(map[string]interface{})
+		path := filepath.Join(projectName, dirConfig["name"].(string))
+		err := os.MkdirAll(path, 0755)
+		if err != nil {
+			return err
+		}
+
+		if children, ok := dirConfig["children"]; ok {
+			childDirs := children.([]interface{})
+			for _, child := range childDirs {
+				childConfig := child.(map[string]interface{})
+				childPath := filepath.Join(path, childConfig["name"].(string))
+				err := os.MkdirAll(childPath, 0755)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	files := config["files"].([]interface{})
+	for _, file := range files {
+		fileConfig := file.(map[string]interface{})
+		filePath := filepath.Join(projectName, fileConfig["name"].(string))
+		_, err := os.Create(filePath)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 

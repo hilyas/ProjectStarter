@@ -1,0 +1,16 @@
+directories:
+  - name: "modules"
+  - name: "environments"
+    children:
+      - name: "dev"
+      - name: "prod"
+  - name: ".github"
+    children:
+      - name: "workflows"
+
+files:
+  - name: "main.tf"
+  - name: "variables.tf"
+  - name: "outputs.tf"
+  - name: "README.md"
+  - name: ".gitignore"

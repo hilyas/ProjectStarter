@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -12,14 +13,32 @@ var createCmd = &cobra.Command{
 	Long:  `Create a new project structure based on the specified project type, structure pattern, and optional flags.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		projectType, _ := cmd.Flags().GetString("type")
+		projectName, _ := cmd.Flags().GetString("name")
 		pattern, _ := cmd.Flags().GetString("pattern")
 		boilerplate, _ := cmd.Flags().GetBool("boilerplate")
 		cicd, _ := cmd.Flags().GetBool("cicd")
 	
-		// TODO: Read the config file for the type and pattern
-	
-		// TODO: Create the directory structure based on the config file
-	
+		// Read the config file for the type and pattern
+		config, err := readConfig(projectType, pattern)
+		if err != nil {
+			fmt.Println("Error reading config file:", err)
+			return
+		}
+
+		// Create the project directory
+		err = os.Mkdir(projectName, 0755)
+		if err != nil {
+			fmt.Println("Error creating project directory:", err)
+			return
+		}
+
+		// Create the directory structure based on the config file
+		err = createDirectoryStructure(projectName, config)
+		if err != nil {
+			fmt.Println("Error creating directory structure:", err)
+			return
+		}
+
 		// TODO: Optionally add a CI/CD directory if the flag is set
 	
 		// TODO: Optionally add boilerplate code if the flag is set
@@ -41,6 +60,7 @@ func init() {
 	// when this action is called directly.
 
 	createCmd.Flags().StringP("type", "t", "", "Project type (required)")
+	createCmd.Flags().StringP("name", "n", "", "Project name (optional)")
 	createCmd.Flags().StringP("pattern", "p", "", "Structure pattern (optional)")
 	createCmd.Flags().BoolP("boilerplate", "b", false, "Include boilerplate code (optional)")
 	createCmd.Flags().BoolP("cicd", "c", false, "Include CI/CD configuration (optional)")
