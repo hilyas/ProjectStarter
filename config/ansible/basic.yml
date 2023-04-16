@@ -1,0 +1,48 @@
+directories:
+  - name: production                # inventory file for production servers
+  - name: staging                   # inventory file for staging environment
+  - name: group_vars
+  - name: host_vars
+  - name: library                  # if any custom modules, put them here (optional)
+  - name: module_utils             # if any custom module_utils to support modules, put them here (optional)
+  - name: filter_plugins           # if any custom filter plugins, put them here (optional)
+  - name: roles
+    children:
+      - name: common               # this hierarchy represents a "role"
+        children:
+          - name: tasks            #
+          - name: handlers         #
+          - name: templates        #  <-- files for use with the template resource
+          - name: files            #
+          - name: vars             #
+          - name: defaults         #
+          - name: meta             #
+          - name: library          # roles can also include custom modules
+          - name: module_utils     # roles can also include custom module_utils
+          - name: lookup_plugins   # or other types of plugins, like lookup in this case
+      - name: webtier              # same kind of structure as "common" was above, done for the webtier role
+      - name: monitoring           # ""
+      - name: fooapp               # ""
+    
+files:
+  - name: site.yml                  # master playbook
+  - name: webservers.yml            # playbook for webserver tier
+  - name: dbservers.yml             # playbook for dbserver tier
+  - name: .gitignore                # gitignore file
+  - name: README.md                 # readme file
+  - name: LICENSE                   # license file
+  - name: requirements.txt          # requirements file
+  - name: ansible.cfg               # ansible config file
+  - name: group_vars/group1.yml     # here we assign variables to particular groups
+  - name: group_vars/group2.yml
+  - name: host_vars/hostname1.yml   # here we assign variables to particular systems
+  - name: host_vars/hostname2.yml 
+  - name: roles/common/tasks/main.yml # tasks file for role common
+  - name: roles/common/handlers/main.yml  # handlers file
+  - name: roles/common/templates/ntp.conf.j2  # files for use with the template resource
+  - name: roles/common/files/bar.txt  # files for use with the copy resource
+  - name: roles/common/files/foo.sh   # script files for use with the script resource
+  - name: roles/common/vars/main.yml  # variables associated with this role
+  - name: roles/common/defaults/main.yml  # default lower priority variables for this role
+  - name: roles/common/meta/main.yml  # role dependencies
+  

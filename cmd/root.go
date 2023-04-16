@@ -74,6 +74,9 @@ func initConfig() {
 }
 
 func readConfig(projectType string, pattern string) (map[string]interface{}, error) {
+	if pattern == "" {
+		pattern = "basic"
+	}
 	configPath := fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
 
 	viper.SetConfigFile(configPath)
@@ -87,11 +90,10 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	return config, nil
 }
 
-func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string, tests bool) error {
-	directories := config["directories"].([]interface{})
-	for _, dir := range directories {
+func createNestedDirectories(basePath string, dirs []interface{}) error {
+	for _, dir := range dirs {
 		dirConfig := dir.(map[string]interface{})
-		path := filepath.Join(projectName, dirConfig["name"].(string))
+		path := filepath.Join(basePath, dirConfig["name"].(string))
 		err := os.MkdirAll(path, 0755)
 		if err != nil {
 			return err
@@ -99,15 +101,19 @@ func createDirectoryStructure(projectName string, config map[string]interface{},
 
 		if children, ok := dirConfig["children"]; ok {
 			childDirs := children.([]interface{})
-			for _, child := range childDirs {
-				childConfig := child.(map[string]interface{})
-				childPath := filepath.Join(path, childConfig["name"].(string))
-				err := os.MkdirAll(childPath, 0755)
-				if err != nil {
-					return err
-				}
+			if err := createNestedDirectories(path, childDirs); err != nil {
+				return err
 			}
 		}
+	}
+	return nil
+}
+
+func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string, tests bool) error {
+	directories := config["directories"].([]interface{})
+	// Create directories from the config file
+	if err := createNestedDirectories(projectName, directories); err != nil {
+		return err
 	}
 
 	files := config["files"].([]interface{})
