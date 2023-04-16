@@ -87,7 +87,7 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	return config, nil
 }
 
-func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string) error {
+func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string, tests bool) error {
 	directories := config["directories"].([]interface{})
 	for _, dir := range directories {
 		dirConfig := dir.(map[string]interface{})
@@ -142,6 +142,14 @@ func createDirectoryStructure(projectName string, config map[string]interface{},
 			if err != nil {
 				return err
 			}
+		}
+	}
+
+	if tests {
+		testsPath := filepath.Join(projectName, "tests")
+		err := os.MkdirAll(testsPath, 0755)
+		if err != nil {
+			return err
 		}
 	}
 
