@@ -87,7 +87,7 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	return config, nil
 }
 
-func createDirectoryStructure(projectName string, config map[string]interface{}) error {
+func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string) error {
 	directories := config["directories"].([]interface{})
 	for _, dir := range directories {
 		dirConfig := dir.(map[string]interface{})
@@ -117,6 +117,31 @@ func createDirectoryStructure(projectName string, config map[string]interface{})
 		_, err := os.Create(filePath)
 		if err != nil {
 			return err
+		}
+	}
+
+	if cicd != "" {
+		var cicdPath string
+		switch cicd {
+		case "github":
+			cicdPath = filepath.Join(projectName, ".github", "workflows", "main.yml")
+		case "circle":
+			cicdPath = filepath.Join(projectName, ".circleci", "config.yml")
+		case "travis":
+			cicdPath = filepath.Join(projectName, ".travis.yml")
+		case "jenkins":
+			cicdPath = filepath.Join(projectName, "Jenkinsfile")
+		case "gitlab":
+			cicdPath = filepath.Join(projectName, ".gitlab-ci.yml")
+		default:
+			fmt.Println("Invalid CI/CD option. Skipping CI/CD directory creation.")
+		} // TODO: Some systems use a file instead of a directory: Jenkins, Gitlab, Travis
+
+		if cicdPath != "" {
+			err := os.MkdirAll(cicdPath, 0755)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

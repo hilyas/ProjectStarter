@@ -4,9 +4,6 @@ directories:
     children:
       - name: "dev"
       - name: "prod"
-  - name: ".github"
-    children:
-      - name: "workflows"
 
 files:
   - name: "main.tf"

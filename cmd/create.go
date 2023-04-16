@@ -16,7 +16,7 @@ var createCmd = &cobra.Command{
 		projectName, _ := cmd.Flags().GetString("name")
 		pattern, _ := cmd.Flags().GetString("pattern")
 		boilerplate, _ := cmd.Flags().GetBool("boilerplate")
-		cicd, _ := cmd.Flags().GetBool("cicd")
+		cicd, _ := cmd.Flags().GetString("cicd")
 	
 		// Read the config file for the type and pattern
 		config, err := readConfig(projectType, pattern)
@@ -33,7 +33,7 @@ var createCmd = &cobra.Command{
 		}
 
 		// Create the directory structure based on the config file
-		err = createDirectoryStructure(projectName, config)
+		err = createDirectoryStructure(projectName, config, cicd)
 		if err != nil {
 			fmt.Println("Error creating directory structure:", err)
 			return
@@ -63,7 +63,7 @@ func init() {
 	createCmd.Flags().StringP("name", "n", "", "Project name (optional)")
 	createCmd.Flags().StringP("pattern", "p", "", "Structure pattern (optional)")
 	createCmd.Flags().BoolP("boilerplate", "b", false, "Include boilerplate code (optional)")
-	createCmd.Flags().BoolP("cicd", "c", false, "Include CI/CD configuration (optional)")
+	createCmd.Flags().StringP("cicd", "c", "", "Add a CI/CD directory (options: github, circle, travis, jenkins, gitlab)")
 	createCmd.MarkFlagRequired("type")
 }
 
