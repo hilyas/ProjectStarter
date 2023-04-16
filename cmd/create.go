@@ -40,9 +40,9 @@ var createCmd = &cobra.Command{
 			return
 		}
 
-		// TODO: Optionally add a CI/CD directory if the flag is set
+		// TODO: Optionally add a CI/CD directory if the flag is set, separate it from createDirectoryStructure
 	
-		// TODO: Optionally add boilerplate code if the flag is set
+		// TODO: Optionally add boilerplate code if the flag is set, separate it from createDirectoryStructure
 	
 		// use the variables to avoid compiler errors
 		fmt.Println(projectType, pattern, boilerplate, cicd, tests)

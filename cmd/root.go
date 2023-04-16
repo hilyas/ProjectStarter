@@ -77,7 +77,17 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	if pattern == "" {
 		pattern = "basic"
 	}
-	configPath := fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
+
+	if !isPatternValid(projectType, pattern) {
+		return nil, fmt.Errorf("Pattern %s is not valid for project type %s", pattern, projectType)
+	}
+
+	var configPath string
+	if isProjectTypeValid(projectType) {
+		configPath = fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
+	} else {
+		return nil, fmt.Errorf("Project type %s is not valid", projectType)
+	}
 
 	viper.SetConfigFile(configPath)
 	err := viper.ReadInConfig()
@@ -90,40 +100,46 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	return config, nil
 }
 
-// func isProjectTypeValid(projectType string) bool {
-// 	validTypes := []string{"go", "python", "java", "javascript", "rust", "c", "c++", "c#", "php", "ruby", "scala", "swift", "kotlin", "dart", "elixir", "haskell", "clojure", "lua", "perl", "r", "fortran", "go", "groovy", "julia", "ocaml", "powershell", "racket", "tcl", "typescript", "assembly", "cobol", "erlang", "fsharp", "haxe", "nim", "pascal", "prolog", "smalltalk", "verilog", "zsh"}
-// 	for _, t := range validTypes {
-// 		if projectType == t {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+// TODO: move to core/validators.go
+func isProjectTypeValid(projectType string) bool {
+	validTypes := []string{"terraform", "ansible"}
+	for _, t := range validTypes {
+		if projectType == t {
+			return true
+		}
+	}
+	return false
+}
 
-// func isPatternValid(projectType string, pattern string) bool {
-// 	if pattern == "" {
-// 		return true
-// 	}
-// 	configPath := fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
-// 	_, err := os.Stat(configPath)
-// 	if os.IsNotExist(err) {
-// 		return false
-// 	}
-// 	return true
-// }
+// TODO: move to core/validators.go
+func isPatternValid(projectType string, pattern string) bool {
+	if pattern == "" {
+		return true
+	}
+	configPath := fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
+	_, err := os.Stat(configPath)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
 
-// func isCICDValid(cicd string) bool {
-// 	validCICDs := []string{"github", "circle", "travis", "jenkins", "gitlab"}
-// 	for _, c := range validCICDs {
-// 		if cicd == c {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+// TODO: move to core/validators.go
+func isCICDValid(cicd string) bool {
+	validCICDs := []string{"github", "circle", "travis", "jenkins", "gitlab"}
+	for _, c := range validCICDs {
+		if cicd == c {
+			return true
+		}
+	}
+	return false
+}
 
+// TODO: move to core/creators.go
 func createCICDFile(projectName string, cicd string) error {
+	
 	var cicdPath string
+	
 	switch cicd {
 	case "github":
 		cicdPath = filepath.Join(projectName, ".github", "workflows", "main.yml")
@@ -137,33 +153,14 @@ func createCICDFile(projectName string, cicd string) error {
 		cicdPath = filepath.Join(projectName, ".gitlab-ci.yml")
 	}
 
-	_, err := os.Create(cicdPath)
+	err := os.MkdirAll(cicdPath, 0755)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func createTestFile(projectName string, projectType string) error {
-	var testPath string
-	switch projectType {
-	case "terraform":
-		testPath = filepath.Join(projectName, "tests", "main.tf")
-	case "ansibe":
-		testPath = filepath.Join(projectName, "tests", "main.yml")
-	default:
-		testPath = filepath.Join(projectName, "tests", "test_file.txt")
-	}
-
-	_, err := os.Create(testPath)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-
+// TODO: move to core/creators.go
 func createNestedDirectories(basePath string, dirs []interface{}) error {
 	for _, dir := range dirs {
 		dirConfig := dir.(map[string]interface{})
@@ -183,6 +180,7 @@ func createNestedDirectories(basePath string, dirs []interface{}) error {
 	return nil
 }
 
+// TODO: move to core/creators.go
 func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string, tests bool) error {
 	directories := config["directories"].([]interface{})
 	// Create directories from the config file
@@ -200,39 +198,24 @@ func createDirectoryStructure(projectName string, config map[string]interface{},
 		}
 	}
 
-	if cicd != "" {
-		createCICDFile(projectName, cicd)
-	// var cicdPath string
-	// 	switch cicd {
-	// 	case "github":
-	// 		cicdPath = filepath.Join(projectName, ".github", "workflows", "main.yml")
-	// 	case "circle":
-	// 		cicdPath = filepath.Join(projectName, ".circleci", "config.yml")
-	// 	case "travis":
-	// 		cicdPath = filepath.Join(projectName, ".travis.yml")
-	// 	case "jenkins":
-	// 		cicdPath = filepath.Join(projectName, "Jenkinsfile")
-	// 	case "gitlab":
-	// 		cicdPath = filepath.Join(projectName, ".gitlab-ci.yml")
-	// 	default:
-	// 		fmt.Println("Invalid CI/CD option. Skipping CI/CD directory creation.")
-	// 	} // TODO: Some systems use a file instead of a directory: Jenkins, Gitlab, Travis
-
-	// 	if cicdPath != "" {
-	// 		err := os.MkdirAll(cicdPath, 0755)
-	// 		if err != nil {
-	// 			return err
-	// 		}
-	// 	}
+	// TODO: move to create.go
+	if cicd != "" || isCICDValid(cicd) {
+		err := createCICDFile(projectName, cicd)
+		if err != nil {
+			fmt.Println("CI/CD option not valid. Skipping creation.")
+			return err
+		}
 	}
 
+	// TODO: create test directory structure based on project type
+	// TODO: create a function to create the test directory structure
+	// TODO: move to create.go
 	if tests {
-		createTestFile(projectName, config["type"].(string))
-		// testsPath := filepath.Join(projectName, "tests")
-		// err := os.MkdirAll(testsPath, 0755)
-		// if err != nil {
-		// 	return err
-		// }
+		testsPath := filepath.Join(projectName, "tests")
+		err := os.MkdirAll(testsPath, 0755)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
