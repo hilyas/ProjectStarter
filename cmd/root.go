@@ -90,6 +90,80 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	return config, nil
 }
 
+// func isProjectTypeValid(projectType string) bool {
+// 	validTypes := []string{"go", "python", "java", "javascript", "rust", "c", "c++", "c#", "php", "ruby", "scala", "swift", "kotlin", "dart", "elixir", "haskell", "clojure", "lua", "perl", "r", "fortran", "go", "groovy", "julia", "ocaml", "powershell", "racket", "tcl", "typescript", "assembly", "cobol", "erlang", "fsharp", "haxe", "nim", "pascal", "prolog", "smalltalk", "verilog", "zsh"}
+// 	for _, t := range validTypes {
+// 		if projectType == t {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+// func isPatternValid(projectType string, pattern string) bool {
+// 	if pattern == "" {
+// 		return true
+// 	}
+// 	configPath := fmt.Sprintf("config/%s/%s.yml", projectType, pattern)
+// 	_, err := os.Stat(configPath)
+// 	if os.IsNotExist(err) {
+// 		return false
+// 	}
+// 	return true
+// }
+
+// func isCICDValid(cicd string) bool {
+// 	validCICDs := []string{"github", "circle", "travis", "jenkins", "gitlab"}
+// 	for _, c := range validCICDs {
+// 		if cicd == c {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+func createCICDFile(projectName string, cicd string) error {
+	var cicdPath string
+	switch cicd {
+	case "github":
+		cicdPath = filepath.Join(projectName, ".github", "workflows", "main.yml")
+	case "circle":
+		cicdPath = filepath.Join(projectName, ".circleci", "config.yml")
+	case "travis":
+		cicdPath = filepath.Join(projectName, ".travis.yml")
+	case "jenkins":
+		cicdPath = filepath.Join(projectName, "Jenkinsfile")
+	case "gitlab":
+		cicdPath = filepath.Join(projectName, ".gitlab-ci.yml")
+	}
+
+	_, err := os.Create(cicdPath)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func createTestFile(projectName string, projectType string) error {
+	var testPath string
+	switch projectType {
+	case "terraform":
+		testPath = filepath.Join(projectName, "tests", "main.tf")
+	case "ansibe":
+		testPath = filepath.Join(projectName, "tests", "main.yml")
+	default:
+		testPath = filepath.Join(projectName, "tests", "test_file.txt")
+	}
+
+	_, err := os.Create(testPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+
 func createNestedDirectories(basePath string, dirs []interface{}) error {
 	for _, dir := range dirs {
 		dirConfig := dir.(map[string]interface{})
@@ -127,39 +201,40 @@ func createDirectoryStructure(projectName string, config map[string]interface{},
 	}
 
 	if cicd != "" {
-		var cicdPath string
-		switch cicd {
-		case "github":
-			cicdPath = filepath.Join(projectName, ".github", "workflows", "main.yml")
-		case "circle":
-			cicdPath = filepath.Join(projectName, ".circleci", "config.yml")
-		case "travis":
-			cicdPath = filepath.Join(projectName, ".travis.yml")
-		case "jenkins":
-			cicdPath = filepath.Join(projectName, "Jenkinsfile")
-		case "gitlab":
-			cicdPath = filepath.Join(projectName, ".gitlab-ci.yml")
-		default:
-			fmt.Println("Invalid CI/CD option. Skipping CI/CD directory creation.")
-		} // TODO: Some systems use a file instead of a directory: Jenkins, Gitlab, Travis
+		createCICDFile(projectName, cicd)
+	// var cicdPath string
+	// 	switch cicd {
+	// 	case "github":
+	// 		cicdPath = filepath.Join(projectName, ".github", "workflows", "main.yml")
+	// 	case "circle":
+	// 		cicdPath = filepath.Join(projectName, ".circleci", "config.yml")
+	// 	case "travis":
+	// 		cicdPath = filepath.Join(projectName, ".travis.yml")
+	// 	case "jenkins":
+	// 		cicdPath = filepath.Join(projectName, "Jenkinsfile")
+	// 	case "gitlab":
+	// 		cicdPath = filepath.Join(projectName, ".gitlab-ci.yml")
+	// 	default:
+	// 		fmt.Println("Invalid CI/CD option. Skipping CI/CD directory creation.")
+	// 	} // TODO: Some systems use a file instead of a directory: Jenkins, Gitlab, Travis
 
-		if cicdPath != "" {
-			err := os.MkdirAll(cicdPath, 0755)
-			if err != nil {
-				return err
-			}
-		}
+	// 	if cicdPath != "" {
+	// 		err := os.MkdirAll(cicdPath, 0755)
+	// 		if err != nil {
+	// 			return err
+	// 		}
+	// 	}
 	}
 
 	if tests {
-		testsPath := filepath.Join(projectName, "tests")
-		err := os.MkdirAll(testsPath, 0755)
-		if err != nil {
-			return err
-		}
+		createTestFile(projectName, config["type"].(string))
+		// testsPath := filepath.Join(projectName, "tests")
+		// err := os.MkdirAll(testsPath, 0755)
+		// if err != nil {
+		// 	return err
+		// }
 	}
 
 	return nil
 }
-
 
