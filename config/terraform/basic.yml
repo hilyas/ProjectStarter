@@ -9,5 +9,7 @@ files:
   - name: "main.tf"
   - name: "variables.tf"
   - name: "outputs.tf"
+  - name: "provider.tf"
+  - name: "terraform.tfvars"
   - name: "README.md"
   - name: ".gitignore"
