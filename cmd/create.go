@@ -44,6 +44,8 @@ var createCmd = &cobra.Command{
 	
 		// TODO: Optionally add boilerplate code if the flag is set, separate it from createDirectoryStructure
 	
+		// TODO: Add a file flag to take an external config file to create the project structure
+
 		// use the variables to avoid compiler errors
 		fmt.Println(projectType, pattern, boilerplate, cicd, tests)
 		fmt.Println("Project created successfully")

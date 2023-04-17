@@ -74,6 +74,29 @@ my-terraform-project
 └── variables.tf
 ```
 
+## Feature roadmap
+
+Not in any particular order:
+
+- More project types
+- More project structure patterns
+- More CI/CD configurations
+- More tests structures
+- More license types
+- More .gitignore types
+- More README.md types
+- A "list" command to list all available project types, patterns, etc.
+- A "show" command to show the project structure for a given project type and pattern
+- A "delete" command to remove a project and recreate it
+- An option for a "dry run" to show the project structure without creating the project
+- An option for containerization (e.g., Docker, Kubernetes, Helm, etc.)
+- An option for a "template" to use a custom template for the project structure (outside of the built-in patterns)
+- An option for configuration values (e.g., project name, author, etc.)
+- An option for boilerplate code (e.g., Terraform modules, Python modules, etc.)
+- A verbose option
+- etc.
+
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
