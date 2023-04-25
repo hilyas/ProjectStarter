@@ -53,15 +53,6 @@ var createCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(createCmd)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-
 	createCmd.Flags().StringP("type", "t", "", "Project type (required)")
 	createCmd.Flags().StringP("name", "n", "", "Project name (optional)")
 	createCmd.Flags().StringP("pattern", "p", "", "Structure pattern (optional)")
@@ -69,6 +60,7 @@ func init() {
 	createCmd.Flags().StringP("cicd", "c", "", "Add a CI/CD directory (optional: github, circle, travis, jenkins, gitlab)")
 	createCmd.Flags().BoolP("tests", "s", false, "Add a test directory (optional)")
 	createCmd.MarkFlagRequired("type")
+	rootCmd.AddCommand(createCmd)
 }
 
 

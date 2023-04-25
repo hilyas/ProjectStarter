@@ -1,15 +1,13 @@
-directories:
-  - name: "modules"
-  - name: "environments"
+children:
+  - name: README.md
+  - name: environments
     children:
-      - name: "dev"
-      - name: "prod"
-
-files:
-  - name: "main.tf"
-  - name: "variables.tf"
-  - name: "outputs.tf"
-  - name: "provider.tf"
-  - name: "terraform.tfvars"
-  - name: "README.md"
-  - name: ".gitignore"
+      - name: dev
+      - name: prod
+  - name: main.tf
+  - name: modules
+  - name: outputs.tf
+  - name: provider.tf
+  - name: terraform.tfvars
+  - name: tests
+  - name: variables.tf

@@ -1,7 +1,3 @@
-/*
-Copyright © 2023 Ilyas Hamdi <ilyas.hamdi@gmail.com>
-
-*/
 package cmd
 
 import (
@@ -13,19 +9,13 @@ import (
 	"github.com/spf13/viper"
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "ProjectStarter",
 	Short: "A CLI to bootstrap projects.",
 	Long: `A CLI to start a new project and create the basic structure. 
 	It will create a new directory with the name of the project and create the basic its structure.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -34,15 +24,7 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.ProjectStarter.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	
 }
 
 var cfgFile string
@@ -100,7 +82,6 @@ func readConfig(projectType string, pattern string) (map[string]interface{}, err
 	return config, nil
 }
 
-// TODO: move to core/validators.go
 func isProjectTypeValid(projectType string) bool {
 	validTypes := []string{"terraform", "ansible"}
 	for _, t := range validTypes {
@@ -111,7 +92,7 @@ func isProjectTypeValid(projectType string) bool {
 	return false
 }
 
-// TODO: move to core/validators.go
+// TODO: make sure that the pattern is valid for the project type
 func isPatternValid(projectType string, pattern string) bool {
 	if pattern == "" {
 		return true
@@ -160,19 +141,27 @@ func createCICDFile(projectName string, cicd string) error {
 	return nil
 }
 
-// TODO: move to core/creators.go
-func createNestedDirectories(basePath string, dirs []interface{}) error {
-	for _, dir := range dirs {
-		dirConfig := dir.(map[string]interface{})
-		path := filepath.Join(basePath, dirConfig["name"].(string))
-		err := os.MkdirAll(path, 0755)
-		if err != nil {
-			return err
+func createNestedDirectories(basePath string, children []interface{}) error {
+	for _, child := range children {
+		childConfig := child.(map[string]interface{})
+		path := filepath.Join(basePath, childConfig["name"].(string))
+
+		// If the child has an extension, create a file; otherwise, create a directory.
+		if filepath.Ext(path) != "" {
+			_, err := os.Create(path)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := os.MkdirAll(path, 0755)
+			if err != nil {
+				return err
+			}
 		}
 
-		if children, ok := dirConfig["children"]; ok {
-			childDirs := children.([]interface{})
-			if err := createNestedDirectories(path, childDirs); err != nil {
+		if childDirs, ok := childConfig["children"]; ok {
+			err := createNestedDirectories(path, childDirs.([]interface{}))
+			if err != nil {
 				return err
 			}
 		}
@@ -180,25 +169,13 @@ func createNestedDirectories(basePath string, dirs []interface{}) error {
 	return nil
 }
 
-// TODO: move to core/creators.go
+
 func createDirectoryStructure(projectName string, config map[string]interface{}, cicd string, tests bool) error {
-	directories := config["directories"].([]interface{})
-	// Create directories from the config file
-	if err := createNestedDirectories(projectName, directories); err != nil {
+	children := config["children"].([]interface{})
+	if err := createNestedDirectories(projectName, children); err != nil {
 		return err
 	}
 
-	files := config["files"].([]interface{})
-	for _, file := range files {
-		fileConfig := file.(map[string]interface{})
-		filePath := filepath.Join(projectName, fileConfig["name"].(string))
-		_, err := os.Create(filePath)
-		if err != nil {
-			return err
-		}
-	}
-
-	// TODO: move to create.go
 	if cicd != "" || isCICDValid(cicd) {
 		err := createCICDFile(projectName, cicd)
 		if err != nil {
@@ -207,9 +184,6 @@ func createDirectoryStructure(projectName string, config map[string]interface{},
 		}
 	}
 
-	// TODO: create test directory structure based on project type
-	// TODO: create a function to create the test directory structure
-	// TODO: move to create.go
 	if tests {
 		testsPath := filepath.Join(projectName, "tests")
 		err := os.MkdirAll(testsPath, 0755)
@@ -220,4 +194,3 @@ func createDirectoryStructure(projectName string, config map[string]interface{},
 
 	return nil
 }
-
